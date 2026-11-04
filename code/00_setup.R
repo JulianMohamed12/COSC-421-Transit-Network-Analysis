@@ -99,7 +99,7 @@ save_table <- function(df, name) {
 }
 
 save_plot <- function(p, name, width = 8, height = 6) {
-  ggsave(file.path(FIG_DIR, paste0(name, ".png")), p, width = width, height = height, dpi = 200)
+  ggsave(file.path(FIG_DIR, paste0(name, ".png")), p, width = width, height = height, dpi = 200, bg = "white")
   invisible(p)
 }
 
