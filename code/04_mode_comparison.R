@@ -1,4 +1,3 @@
-# ==========================================================
 # 04_mode_comparison.R
 #   RQ4: Do buses and rapid transit (SkyTrain, WCE, SeaBus) play
 #        different roles, or do they duplicate each other?
@@ -8,7 +7,6 @@
 #          (or the transfers between modes) is removed
 # Part C - for every rapid transit link, how long the same trip
 #          takes using only buses + walking (substitution ratio)
-# ==========================================================
 
 if (!exists("ROOT")) source(if (file.exists("00_setup.R")) "00_setup.R" else file.path("code", "00_setup.R"))
 g <- load_graph()
@@ -16,7 +14,7 @@ N0 <- vcount(g)
 SOURCES <- sample(V(g)$name, N_EFFICIENCY_SOURCES)
 E0 <- sampled_efficiency(g, SOURCES, N0)
 
-# ---- Part A: subnetwork structure --------------------------------------
+# Part A: subnetwork structure
 mode_subgraph <- function(groups) {
   subgraph_from_edges(g, E(g)[mode_group %in% groups], delete.vertices = TRUE)
 }
@@ -37,7 +35,7 @@ structure_tab <- rbind(describe(g_bus, "Bus only"), describe(g_rapid, "Rapid tra
 cat("\n--- RQ4A: SUBNETWORK STRUCTURE ---\n"); print(structure_tab)
 save_table(structure_tab, "rq4_mode_structure")
 
-# ---- Part B: remove a whole mode ---------------------------------------
+# Part B: remove a whole mode
 scenario <- function(drop_groups, label) {
   gr <- delete_edges(g, E(g)[mode_group %in% drop_groups])
   data.table(scenario = label,
@@ -53,7 +51,7 @@ mode_removal <- rbind(
 cat("\n--- RQ4B: MODE REMOVAL ---\n"); print(mode_removal)
 save_table(mode_removal, "rq4_mode_removal")
 
-# ---- Part C: can buses substitute for each rapid transit link? -------
+# Part C: can buses substitute for each rapid transit link?
 g_no_rapid <- delete_edges(g, E(g)[mode_group == "Rapid transit"])
 rapid_el <- as.data.table(as_data_frame(g, what = "edges"))[mode_group == "Rapid transit"]
 from_ids <- unique(rapid_el$from)

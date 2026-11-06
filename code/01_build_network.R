@@ -1,4 +1,3 @@
-# ==========================================================
 # 01_build_network.R
 # Load the TransLink GTFS feed, clean it, and build the
 # directed, weighted, multimodal transit graph.
@@ -10,11 +9,10 @@
 #         scheduled travel time (minutes). Edges are tagged by
 #         mode. Walking transfers from transfers.txt are added
 #         as "Transfer" edges so bus and rail connect.
-# ==========================================================
 
 if (!exists("ROOT")) source(if (file.exists("00_setup.R")) "00_setup.R" else file.path("code", "00_setup.R"))
 
-# ---- 1. Read GTFS ------------------------------------------------------
+# 1. Read GTFS
 gtfs_dir <- file.path(tempdir(), "gtfs_translink")
 dir.create(gtfs_dir, showWarnings = FALSE)
 unzip(ZIP_PATH, exdir = gtfs_dir)
@@ -31,7 +29,7 @@ transfers  <- read_gtfs_file("transfers.txt")
 cat(sprintf("Raw feed: %d stops, %d routes, %d trips, %d stop_times\n",
             nrow(stops), nrow(routes), nrow(trips), nrow(stop_times)))
 
-# ---- 2. Keep only service running on SERVICE_DATE ----------------------
+# 2. Keep only service running on SERVICE_DATE
 day_col  <- tolower(weekdays(SERVICE_DATE))
 date_str <- format(SERVICE_DATE, "%Y%m%d")
 
@@ -53,7 +51,7 @@ trips[, route_label := fifelse(is.na(route_short_name), route_long_name, route_s
 cat(sprintf("Service on %s (%s): %d trips on %d routes\n",
             SERVICE_DATE, day_col, nrow(trips), uniqueN(trips$route_id)))
 
-# ---- 3. Map platforms to stations (node ids) ---------------------------
+# 3. Map platforms to stations (node ids)
 stops[, node_id := fifelse(!is.na(parent_station), parent_station, stop_id)]
 
 # West Coast Express platforms ("X Station @ West Coast Express") have no parent
@@ -66,7 +64,7 @@ stops[wce, node_id := i.station_id, on = "stop_id"]
 cat(sprintf("Merged %d West Coast Express platforms into SkyTrain stations\n", nrow(wce)))
 stop_to_node <- stops[, .(stop_id, node_id)]
 
-# ---- 4. Build ride edges from consecutive stop_times -------------------
+# 4. Build ride edges from consecutive stop_times
 st <- stop_times[trip_id %in% trips$trip_id,
                  .(trip_id, stop_id, stop_sequence = as.integer(stop_sequence),
                    arr = gtfs_time_to_sec(arrival_time),
@@ -97,7 +95,7 @@ ride_edges <- hops[, .(
 
 cat(sprintf("Ride edges: %d (dropped %d hops with negative times)\n", nrow(ride_edges), n_negative))
 
-# ---- 5. Walking transfer edges ----------------------------------------
+# 5. Walking transfer edges
 # transfer_type 4 rows are trip-specific (in-seat) transfers, not walks between stops.
 walk <- transfers[is.na(from_trip_id) & from_stop_id != to_stop_id & transfer_type != "3",
                   .(from_stop = from_stop_id, to_stop = to_stop_id,
@@ -135,7 +133,7 @@ edges <- rbind(ride_edges, transfer_edges)
 cat(sprintf("Transfer edges: %d (incl. %d added by %d m proximity rule)\n",
             nrow(transfer_edges), nrow(proximity_edges), WALK_RADIUS_M))
 
-# ---- 6. Node table ------------------------------------------------------
+# 6. Node table
 used_nodes <- unique(c(edges$from, edges$to))
 node_info <- stops[stop_id %in% used_nodes,
                    .(name = stop_id, stop_name,
@@ -150,7 +148,7 @@ node_info <- merge(node_info, node_routes, by = "name", all.x = TRUE)
 node_info[is.na(routes_served), `:=`(routes_served = 0L, node_mode = "Transfer only")]
 setcolorder(node_info, "name")
 
-# ---- 7. Graph ------------------------------------------------------------
+# 7. Graph
 edges[, mode_group := fifelse(mode == "Bus", "Bus",
                        fifelse(mode == "Transfer", "Transfer", "Rapid transit"))]
 g <- graph_from_data_frame(edges, directed = TRUE, vertices = node_info)

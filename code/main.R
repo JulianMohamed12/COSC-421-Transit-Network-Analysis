@@ -6,9 +6,7 @@ library(ggplot2)
 library(purrr)
 library(hms)
 
-# ==========================================
 # STEP 0: Set Working Directory Dynamically
-# ==========================================
 
 # Ensures paths resolve relative to this script's directory (code/)
 if (requireNamespace("rstudioapi", quietly = TRUE) && rstudioapi::isAvailable()) {
@@ -18,9 +16,7 @@ if (requireNamespace("rstudioapi", quietly = TRUE) && rstudioapi::isAvailable())
 # Path to the zip file inside the 'code' folder
 zip_path <- "transit_data.zip"
 
-# ==========================================
 # STEP 1: Load and Clean GTFS Data
-# ==========================================
 
 cat("Loading GTFS zip archive from:", zip_path, "\n")
 gtfs <- read_gtfs(zip_path)
@@ -77,10 +73,8 @@ nodes <- gtfs$stops %>%
 g_full <- graph_from_data_frame(d = edges, vertices = nodes, directed = TRUE)
 
 
-# ==========================================
 # RESEARCH QUESTION 1:
 # Bottlenecks and Points of Failure
-# ==========================================
 
 V(g_full)$degree_in <- degree(g_full, mode = "in")
 V(g_full)$degree_out <- degree(g_full, mode = "out")
@@ -104,10 +98,8 @@ cat("\n--- TOP 10 BOTTLENECKS (BETWEENNESS CENTRALITY) ---\n")
 print(top_bottlenecks)
 
 
-# ==========================================
 # RESEARCH QUESTION 2:
 # Disruption & Network Removal Simulations
-# ==========================================
 
 simulate_removal <- function(graph, top_n = 20) {
   targets <- head(V(graph)$name[order(betweenness(graph, weights = E(graph)$weight), decreasing = TRUE)], top_n)
@@ -148,10 +140,8 @@ p <- ggplot(removal_results, aes(x = nodes_removed, y = avg_path_length)) +
 print(p)
 
 
-# ==========================================
 # RESEARCH QUESTION 3:
 # Hidden Bottlenecks (High Routes, Low Accessibility)
-# ==========================================
 
 metrics_df <- metrics_df %>%
   mutate(
@@ -168,10 +158,8 @@ cat("\n--- TOP 10 HIDDEN BOTTLENECKS (HIGH CONNECTIVITY, POOR ACCESSIBILITY) ---
 print(hidden_bottlenecks %>% select(stop_id, stop_name, degree, closeness, inefficiency_score))
 
 
-# ==========================================
 # RESEARCH QUESTION 4:
 # Structural Comparison: Bus vs. Rapid Transit
-# ==========================================
 
 # Subgraph: Bus
 edges_bus <- edges %>% filter(mode == "Bus")

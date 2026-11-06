@@ -1,8 +1,6 @@
-# ==========================================================
 # 00_setup.R
 # Shared packages, paths and helper functions.
 # Every other script sources this file first.
-# ==========================================================
 
 suppressPackageStartupMessages({
   library(data.table)
@@ -10,7 +8,7 @@ suppressPackageStartupMessages({
   library(ggplot2)
 })
 
-# ---- Locate the repository root ---------------------------------------
+# Locate the repository root
 # Works whether the script is run from the repo root, from code/, or in RStudio.
 find_repo_root <- function() {
   start <- getwd()
@@ -37,7 +35,7 @@ dir.create(TAB_DIR, recursive = TRUE, showWarnings = FALSE)
 
 GRAPH_RDS <- file.path(OUT_DIR, "transit_graph.rds")
 
-# ---- Analysis settings -------------------------------------------------
+# Analysis settings
 # A normal weekday inside the feed's calendar (Sept 7 2026 - Jan 3 2027),
 # chosen to avoid holidays. Using one day avoids mixing weekday and weekend
 # schedules into the same edge weights.
@@ -50,7 +48,7 @@ WALK_SPEED_M_PER_MIN  <- 80     # about 4.8 km/h
 N_EFFICIENCY_SOURCES  <- 300    # sampled source stops for the efficiency estimate
 set.seed(421)
 
-# ---- Helpers -----------------------------------------------------------
+# Helpers
 
 # GTFS times look like " 5:05:00" or "25:10:30" (after midnight). Convert to seconds.
 gtfs_time_to_sec <- function(x) {

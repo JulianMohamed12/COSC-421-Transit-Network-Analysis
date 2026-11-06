@@ -1,4 +1,3 @@
-# ==========================================================
 # 03_resilience.R
 #   RQ2: How well does the network hold up when key stations are removed?
 #
@@ -9,7 +8,6 @@
 # After each step we measure:
 #   - share of stops still in the largest weakly connected component
 #   - network efficiency (mean of 1 / travel time), from a fixed sample of sources
-# ==========================================================
 
 if (!exists("ROOT")) source(if (file.exists("00_setup.R")) "00_setup.R" else file.path("code", "00_setup.R"))
 g <- load_graph()

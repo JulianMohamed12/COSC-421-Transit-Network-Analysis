@@ -1,14 +1,12 @@
-# ==========================================================
 # 02_centrality.R
 # Network-level summary + node centrality.
 #   RQ1: Which stations are the biggest bottlenecks / points of failure?
 #   RQ3: Which stations have many routes but are poor for getting across town?
-# ==========================================================
 
 if (!exists("ROOT")) source(if (file.exists("00_setup.R")) "00_setup.R" else file.path("code", "00_setup.R"))
 g <- load_graph()
 
-# ---- Network-level summary ---------------------------------------------
+# Network-level summary
 ride_g <- subgraph_from_edges(g, E(g)[mode != "Transfer"], delete.vertices = FALSE)
 deg_all <- degree(g, mode = "all")
 scc <- components(g, mode = "strong")
@@ -32,7 +30,7 @@ network_summary <- data.table(
 cat("\n--- NETWORK SUMMARY ---\n"); print(network_summary)
 save_table(network_summary, "network_summary")
 
-# ---- Node centrality ----------------------------------------------------
+# Node centrality
 cat("\nComputing betweenness and harmonic closeness (weighted by travel time)...\n")
 t0 <- Sys.time()
 V(g)$degree_in    <- degree(g, mode = "in")
@@ -54,7 +52,7 @@ setorder(metrics, -betweenness)
 save_table(metrics, "node_metrics")
 saveRDS(g, GRAPH_RDS)   # keep the centrality scores on the graph for later scripts
 
-# ---- RQ1: bottlenecks ----------------------------------------------------
+# RQ1: bottlenecks
 top_betweenness <- metrics[1:15, .(stop_name, node_mode, routes_served, degree,
                                    betweenness = round(betweenness, 4), articulation)]
 cat("\n--- RQ1: TOP 15 BOTTLENECKS (weighted betweenness) ---\n"); print(top_betweenness)
@@ -70,7 +68,7 @@ cat(sprintf("\nArticulation points (single stops whose loss splits the network):
 save_table(metrics[articulation == TRUE][1:min(.N, 25),
                    .(stop_name, node_mode, routes_served, betweenness)], "rq1_top_articulation_points")
 
-# ---- RQ3: hidden bottlenecks --------------------------------------------
+# RQ3: hidden bottlenecks
 # Degree in a stop-level GTFS graph is almost always 2-4, so "number of routes
 # serving the stop" is the better measure of how connected a stop looks.
 # A hidden bottleneck is a stop in the top 5% for routes served whose
@@ -98,7 +96,7 @@ save_table(hidden, "rq3_hidden_bottlenecks")
 rho <- cor(metrics$routes_served, metrics$closeness, method = "spearman")
 cat(sprintf("Spearman correlation, routes served vs closeness: %.3f\n", rho))
 
-# ---- Figures ------------------------------------------------------------
+# Figures
 p_deg <- ggplot(metrics, aes(degree)) +
   geom_bar(fill = "#2b6cb0") +
   scale_y_log10() +

@@ -1,8 +1,6 @@
-# ==========================================================
 # run_all.R - runs the full milestone pipeline in order.
 # From the repo root:  Rscript code/run_all.R
 # Outputs: output/tables/*.csv, output/figures/*.png
-# ==========================================================
 
 source(if (file.exists("00_setup.R")) "00_setup.R" else file.path("code", "00_setup.R"))
 
